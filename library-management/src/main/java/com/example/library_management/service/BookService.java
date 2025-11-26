@@ -1,12 +1,17 @@
 package com.example.library_management.service;
 
+import com.example.library_management.dto.PagedResponse;
 import com.example.library_management.exception.ResourceNotFoundException;
 import com.example.library_management.model.Book;
+import com.example.library_management.model.BookCategory;
 import com.example.library_management.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.example.library_management.dto.PageMeta;
+import org.springframework.data.domain.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
@@ -59,4 +64,83 @@ public class BookService {
     public List<Book> addMultipleBooks(List<Book> books) {
         return bookRepository.saveAll(books);
     }
+
+    /**
+     * Search books with pagination + sorting.
+     * - If both title and author provided -> search by both (AND)
+     * - Else if title provided -> search by title
+     * - Else if author provided -> search by author
+     * - Else if category provided -> search by category
+     * - Else -> return all paged
+     */
+    public PagedResponse<Book> searchBooks(
+            String title,
+            String author,
+            BookCategory category,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort.Direction dir = Sort.Direction.fromString(sortDir == null ? "ASC" : sortDir);
+        Sort sort = Sort.by(dir, (sortBy == null || sortBy.isBlank()) ? "id" : sortBy);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sort);
+
+        Page<Book> pg;
+
+        boolean hasTitle = title != null && !title.isBlank();
+        boolean hasAuthor = author != null && !author.isBlank();
+
+        if (hasTitle && hasAuthor) {
+            pg = bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCase(title.trim(), author.trim(), pageable);
+        } else if (hasTitle) {
+            pg = bookRepository.findByTitleContainingIgnoreCase(title.trim(), pageable);
+        } else if (hasAuthor) {
+            pg = bookRepository.findByAuthorContainingIgnoreCase(author.trim(), pageable);
+        } else if (category != null) {
+            pg = bookRepository.findByCategory(category, pageable);
+        } else {
+            pg = bookRepository.findAll(pageable);
+        }
+
+        List<Book> items = pg.getContent().stream().collect(Collectors.toList());
+        PageMeta meta = new PageMeta(pg.getNumber(), pg.getSize(), pg.getTotalElements(), pg.getTotalPages());
+        return new PagedResponse<>(items, meta);
+    }
+
+
+    public List<Book> findBooks(String title,
+                                String author,
+                                BookCategory category,
+                                int page,
+                                int size,
+                                String sortBy,
+                                String sortDir) {
+
+        Sort.Direction dir = Sort.Direction.fromString(sortDir == null ? "ASC" : sortDir);
+        Sort sort = Sort.by(dir, (sortBy == null || sortBy.isBlank()) ? "id" : sortBy);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sort);
+
+        Page<Book> pg;
+
+        boolean hasTitle = title != null && !title.isBlank();
+        boolean hasAuthor = author != null && !author.isBlank();
+
+        if (hasTitle && hasAuthor) {
+            pg = bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCase(
+                    title.trim(), author.trim(), pageable);
+        } else if (hasTitle) {
+            pg = bookRepository.findByTitleContainingIgnoreCase(title.trim(), pageable);
+        } else if (hasAuthor) {
+            pg = bookRepository.findByAuthorContainingIgnoreCase(author.trim(), pageable);
+        } else if (category != null) {
+            pg = bookRepository.findByCategory(category, pageable);
+        } else {
+            pg = bookRepository.findAll(pageable);
+        }
+
+        // return the page content as a simple List
+        return pg.getContent();
+    }
+
 }
