@@ -1,5 +1,6 @@
 package com.example.library_management.service;
 
+import com.example.library_management.dto.BookPageResponse;
 import com.example.library_management.dto.PagedResponse;
 import com.example.library_management.exception.ResourceNotFoundException;
 import com.example.library_management.model.Book;
@@ -142,5 +143,45 @@ public class BookService {
         // return the page content as a simple List
         return pg.getContent();
     }
+    public BookPageResponse searchBooksPage(
+            String title,
+            String author,
+            BookCategory category,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort.Direction dir = Sort.Direction.fromString(sortDir);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+
+        Page<Book> pg;
+
+        boolean hasTitle = title != null && !title.isBlank();
+        boolean hasAuthor = author != null && !author.isBlank();
+
+        if (hasTitle && hasAuthor) {
+            pg = bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCase(title, author, pageable);
+        } else if (hasTitle) {
+            pg = bookRepository.findByTitleContainingIgnoreCase(title, pageable);
+        } else if (hasAuthor) {
+            pg = bookRepository.findByAuthorContainingIgnoreCase(author, pageable);
+        } else if (category != null) {
+            pg = bookRepository.findByCategory(category, pageable);
+        } else {
+            pg = bookRepository.findAll(pageable);
+        }
+
+        return new BookPageResponse(
+                pg.getNumber(),
+                pg.getSize(),
+                pg.getTotalElements(),
+                pg.getTotalPages(),
+                pg.isFirst(),
+                pg.isLast(),
+                pg.getContent()
+        );
+    }
+
 
 }

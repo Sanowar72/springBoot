@@ -1,6 +1,7 @@
 package com.example.library_management.controller;
 
 import com.example.library_management.dto.ApiResponse;
+import com.example.library_management.dto.BookPageResponse;
 import com.example.library_management.dto.PagedResponse;
 import com.example.library_management.model.Book;
 import com.example.library_management.model.BookCategory;
@@ -119,19 +120,19 @@ public class BookController {
      *  - sortBy (default "id")
      *  - sortDir (ASC or DESC, default ASC)
      */
-    @GetMapping
-    public ResponseEntity<PagedResponse<Book>> getBooksPaged(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) BookCategory category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "ASC") String sortDir
-    ) {
-        PagedResponse<Book> resp = bookService.searchBooks(title, author, category, page, size, sortBy, sortDir);
-        return ResponseEntity.ok(resp);
-    }
+//    @GetMapping
+//    public ResponseEntity<PagedResponse<Book>> getBooksPaged(
+//            @RequestParam(required = false) String title,
+//            @RequestParam(required = false) String author,
+//            @RequestParam(required = false) BookCategory category,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "id") String sortBy,
+//            @RequestParam(defaultValue = "ASC") String sortDir
+//    ) {
+//        PagedResponse<Book> resp = bookService.searchBooks(title, author, category, page, size, sortBy, sortDir);
+//        return ResponseEntity.ok(resp);
+//    }
 
     // Returns only the page content as a simple list (same logic as findBooks)
     @GetMapping("/list")
@@ -147,5 +148,29 @@ public class BookController {
         List<Book> books = bookService.findBooks(title, author, category, page, size, sortBy, sortDir);
         return ResponseEntity.ok(books);
     }
+
+    @GetMapping
+    public ResponseEntity<?> getBooksPaged(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) BookCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDir
+    ) {
+        BookPageResponse resp = bookService.searchBooksPage(
+                title, author, category, page, size, sortBy, sortDir
+        );
+
+        ApiResponse<BookPageResponse> apiResp = new ApiResponse<>(
+                200,
+                "Books fetched successfully",
+                resp
+        );
+
+        return ResponseEntity.ok(apiResp);
+    }
+
 
 }
