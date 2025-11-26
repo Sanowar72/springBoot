@@ -33,14 +33,17 @@ public class BookService {
 
     // ➤ UPDATE BOOK
     public Book updateBook(Long id, Book updatedBook) {
+
         Book existing = bookRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Book not found with ID: " + id));
 
+        // Set updated fields
         existing.setTitle(updatedBook.getTitle());
         existing.setAuthor(updatedBook.getAuthor());
         existing.setCategory(updatedBook.getCategory());
         existing.setPrice(updatedBook.getPrice());
+        existing.setStatus(updatedBook.getStatus());
 
         return bookRepository.save(existing);
     }
@@ -51,5 +54,9 @@ public class BookService {
             throw new ResourceNotFoundException("Book not found with ID: " + id);
         }
         bookRepository.deleteById(id);
+    }
+
+    public List<Book> addMultipleBooks(List<Book> books) {
+        return bookRepository.saveAll(books);
     }
 }

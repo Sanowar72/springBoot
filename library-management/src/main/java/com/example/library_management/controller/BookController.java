@@ -30,6 +30,21 @@ public class BookController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    // ➤ ADD MULTIPLE BOOKS
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse<List<Book>>> addMultipleBooks(
+            @Valid @RequestBody List<Book> books
+    ) {
+        List<Book> savedBooks = bookService.addMultipleBooks(books);
+
+        ApiResponse<List<Book>> response = new ApiResponse<>(
+                201,
+                "Books added successfully",
+                savedBooks
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     // ➤ GET ALL BOOKS
     @GetMapping
@@ -78,10 +93,10 @@ public class BookController {
 
     // ➤ DELETE BOOK
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteBook(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
 
-        ApiResponse<String> response = new ApiResponse<>(
+        ApiResponse<Void> response = new ApiResponse<>(
                 200,
                 "Book deleted successfully",
                 null

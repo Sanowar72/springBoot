@@ -1,21 +1,14 @@
-package com.example.library_management.model;
+package com.example.library_management.dto;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import com.example.library_management.model.BookCategory;
+import com.example.library_management.model.BookStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
 
-@Entity
-@Table(name = "books")
 @Data
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class Book {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class BookRequest {
 
     @NotBlank(message = "Book title is required")
     private String title;
@@ -27,10 +20,8 @@ public class Book {
     private double price;
 
     @NotNull(message = "Category is required")
-    @Enumerated(EnumType.STRING)
     private BookCategory category;
 
     @NotNull(message = "Status is required")
-    @Enumerated(EnumType.STRING)
     private BookStatus status;
 }
